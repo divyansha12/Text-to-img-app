@@ -25,34 +25,25 @@ function App() {
 
     try {
       const response = await fetch(
-        "https://router.huggingface.co/nscale/v1/images/generations",
+        "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell",
         {
           headers: {
             Authorization: `Bearer ${HF_TOKEN}`,
             "Content-Type": "application/json",
           },
           method: "POST",
-          body: JSON.stringify({
-            response_format: "b64_json",
-            prompt: prompt,
-            model: "stabilityai/stable-diffusion-xl-base-1.0",
-          }),
+          body: JSON.stringify({ inputs: prompt }),
         }
       )
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}))
-        throw new Error(errData.error?.message || errData.error || `System Error: ${response.status}`)
+        throw new Error(errData.error || `System Error: ${response.status}`)
       }
 
-      const data = await response.json()
-      
-      if (data.data && data.data[0] && data.data[0].b64_json) {
-        const base64Image = `data:image/png;base64,${data.data[0].b64_json}`
-        setImage(base64Image)
-      } else {
-        throw new Error("Invalid orbital response.")
-      }
+      const blob = await response.blob()
+      const imageUrl = URL.createObjectURL(blob)
+      setImage(imageUrl)
     } catch (err) {
       console.error("Transmission Error:", err)
       setError(err.message || "Link failed. Check connection.")
@@ -84,7 +75,7 @@ function App() {
         <header>
           <div className="badge">
             <span className="dot"></span>
-            NEURAL ENGINE: SDXL 1.0
+            NEURAL ENGINE: FLUX.1 SCHNELL
           </div>
           <h1>AI Image Generator</h1>
           <p className="subtitle">Synthesizing the cosmos, one pixel at a time.</p>
@@ -148,7 +139,7 @@ function App() {
         </div>
 
         <footer>
-          <p>STATION: ANTIGRAVITY &bull; PROT: SDXL 1.0 &bull; {new Date().getFullYear()}</p>
+          <p>STATION: ANTIGRAVITY &bull; PROT: FLUX.1 &bull; {new Date().getFullYear()}</p>
         </footer>
       </div>
     </>
